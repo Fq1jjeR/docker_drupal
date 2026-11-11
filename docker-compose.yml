@@ -1,0 +1,7 @@
+services:
+  drupal:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      - PORT=80
