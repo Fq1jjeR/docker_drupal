@@ -1,10 +1,14 @@
 FROM drupal:10-apache
 
-RUN docker-php-ext-install pdo pdo_sqlite
+# Устанавливаем зависимости для сборки pdo_sqlite
+RUN apt-get update && apt-get install -y libsqlite3-dev && rm -rf /var/lib/apt/lists/*
 
-RUN echo '#!/bin/bash\n\
-sed -i "s/Listen 80/Listen ${PORT:-80}/" /etc/apache2/ports.conf\n\
-sed -i "s/\*:80/\*:${PORT:-80}/" /etc/apache2/sites-available/000-default.conf\n\
-apache2-foreground' > /entrypoint.sh && chmod +x /entrypoint.sh
+# Устанавливаем только pdo_sqlite (PDO уже есть в образе)
+RUN docker-php-ext-install pdo_sqlite
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENV PORT=80
+
+# Переопределяем порт Apache на значение из переменной окружения
+CMD sed -i "s/Listen 80/Listen ${PORT}/" /etc/apache2/ports.conf && \
+    sed -i "s/\*:80/\*:${PORT}/" /etc/apache2/sites-available/000-default.conf && \
+    apache2-foreground
